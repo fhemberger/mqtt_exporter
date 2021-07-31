@@ -278,12 +278,14 @@ def _update_metrics(metrics, msg):
 
         labels = finalize_labels(labels)
 
-        # Add derived metric for when the message was last received (timestamp in milliseconds)
-        derived_metric = {
-            'name': f"{metric['name']}_last_received",
-            'help': f"Last received message for '{metric['name']}'",
-            'type': 'gauge'
-        }
+        derived_metric  = metric.setdefault('derived_metric', 
+            # Add derived metric for when the message was last received (timestamp in milliseconds)
+            {
+                'name': f"{metric['name']}_last_received",
+                'help': f"Last received message for '{metric['name']}'",
+                'type': 'gauge'
+            }
+        )
         derived_labels = {'topic': metric['topic'],
                           'value': int(round(time.time() * 1000))}
 
@@ -365,7 +367,7 @@ def gauge(label_names, label_values, metric, name, value):
 
 def get_prometheus_metric(label_names, label_values, metric, name, buckets=None):
     key = ':'.join([''.join(label_names), ''.join(label_values)])
-    if 'prometheus_metric' not in metric or not metric['prometheus_metric']:
+    if not metric.get('prometheus_metric') or not metric['prometheus_metric'].get('base'):
         metric['prometheus_metric'] = {}
         prometheus_metric_types = {'gauge': prometheus.Gauge,
                                    'counter': prometheus.Counter,
@@ -375,7 +377,7 @@ def get_prometheus_metric(label_names, label_values, metric, name, buckets=None)
         metric_type = metric['type'].lower()
         if metric_type == 'histogram' and buckets:
             metric['prometheus_metric']['base'] = prometheus_metric_types[metric_type](name, metric['help'],
-                                                                                       list(label_names), buckets)
+                                                        list(label_names), buckets)
         else:
             metric['prometheus_metric']['base'] = prometheus_metric_types[metric_type](name, metric['help'],
                                                                                        list(label_names))
