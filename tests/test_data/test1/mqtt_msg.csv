@@ -1,0 +1,26 @@
+in_topic;in_payload;out_name;out_labels;out_value;delay;assert
+fhem/Terrasse/TermPearl02/temperature;18;fhem_temperature_celsius;{"location": "Terrasse","topic": "fhem/Terrasse/TermPearl02/temperature"};18;1;True
+fhem/Terrasse/TermPearl02/humidity;21;fhem_humidity_percent;{"location": "Terrasse","topic": "fhem/Terrasse/TermPearl02/humidity"};21;2;True
+fhem/Garten/TermFetanten01/humidity;79;fhem_humidity_percent;{"location": "Garten","topic": "fhem/Garten/TermFetanten01/humidity"};79;2;True
+fhem/Garten/rainmeter01/rain_total;134.8;fhem_rain_mm;{"location":"Garten","topic": "fhem/Garten/rainmeter01/rain_total"};134.8;4;True
+fhem/Terrasse/TermPearl02/temperature;22;fhem_temperature_celsius;{"location": "Terrasse","topic": "fhem/Terrasse/TermPearl02/temperature"};22;5;True
+fhem/Terrasse/TermPearl02/humidity;24.3;fhem_humidity_percent;{"location": "Terrasse","topic": "fhem/Terrasse/TermPearl02/humidity"};24.3;1;True
+fhem/Garten/TermFetanten01/humidity;79;fhem_humidity_percent;{"location": "Garten","topic": "fhem/Garten/TermFetanten01/humidity"};79;2;True
+fhem/Garten/rainmeter01/rain_total;11.1;fhem_rain_mm;{"location":"Garten","topic": "fhem/Garten/rainmeter01/rain_total"};145.9;3;True
+fhem/Garten/rainmeter01/rain_total;10;fhem_rain_mm;{"location":"Garten","topic": "fhem/Garten/rainmeter01/rain_total"};155.9;5;True
+network/vlan11/srv01.local/ping;2;network_ping_ms;{"network": "vlan11","topic": "network/vlan11/srv01.local/ping", "server": "srv01.local", "le": "5.0"};{"_count": 1, "_sum": 2, "_bucket": 1};2;True
+network/vlan11/srv01.local/ping;4;network_ping_ms;{"network": "vlan11","topic": "network/vlan11/srv01.local/ping", "server": "srv01.local", "le": "5.0"};{"_count": 2, "_sum": 6, "_bucket": 2};6;True
+network/vlan11/srv01.local/ping;7;network_ping_ms;{"network": "vlan11","topic": "network/vlan11/srv01.local/ping", "server": "srv01.local", "le": "10.0"};{"_count": 3, "_sum": 13, "_bucket": 3};1;True
+network/vlan11/srv01.local/ping;0.4;network_ping_ms;{"network": "vlan11","topic": "network/vlan11/srv01.local/ping", "server": "srv01.local", "le": "0.5"};{"_count": 4, "_sum": 13.4, "_bucket": 1};4;True
+network/vlan11/srv01.local/ping;20;network_ping_ms;{"network": "vlan11","topic": "network/vlan11/srv01.local/ping", "server": "srv01.local", "le": "+Inf"};{"_count": 5, "_sum": 33.4, "_bucket": 5};5;True
+network/vlan11/srv01.local/ping;11.1;network_ping_ms;{"network": "vlan11","topic": "network/vlan11/srv01.local/ping", "server": "srv01.local", "le": "+Inf"};{"_count": 6, "_sum": 44.5, "_bucket": 6};2;True
+network/vlan11/srv01.local/ping;5;network_ping_ms;{"network": "vlan11","topic": "network/vlan11/srv01.local/ping", "server": "srv01.local", "le": "5.0"};{"_count": 7, "_sum": 49.5, "_bucket": 4};4;True
+network/vlan11/srv01.local/ping;6;network_ping_ms;{"network": "vlan11","topic": "network/vlan11/srv01.local/ping", "server": "srv01.local", "le": "10.0"};{"_count": 8, "_sum": 55.5, "_bucket": 6};1;True
+network/vlan11/srv01.local/ping;0.05;network_ping_ms;{"network": "vlan11","topic": "network/vlan11/srv01.local/ping", "server": "srv01.local", "le": "0.5"};{"_count": 9, "_sum": 55.55, "_bucket": 2};4;True
+network/vlan11/srv01.local/ping;30;network_ping_ms;{"network": "vlan11","topic": "network/vlan11/srv01.local/ping", "server": "srv01.local", "le": "+Inf"};{"_count": 10, "_sum": 85.55, "_bucket": 10};5;True
+ftp/update.bin/transferred;123;ftp_transferred_bytes;{"file": "update.bin","topic": "ftp/update.bin/transferred"};{"_count": 1, "_sum": 123};1;True
+ftp/update.bin/transferred;234;ftp_transferred_bytes;{"file": "update.bin","topic": "ftp/update.bin/transferred"};{"_count": 2, "_sum": 357};1;True
+ftp/update.bin/transferred;34;ftp_transferred_bytes;{"file": "update.bin","topic": "ftp/update.bin/transferred"};{"_count": 3, "_sum": 391};1;True
+ftp/update.bin/transferred;45;ftp_transferred_bytes;{"file": "update.bin","topic": "ftp/update.bin/transferred"};{"_count": 4, "_sum": 436};1;True
+ftp/update.bin/transferred;89;ftp_transferred_bytes;{"file": "update.bin","topic": "ftp/update.bin/transferred"};{"_count": 5, "_sum": 525};1;True
+ftp/update.bin/transferred;11111;ftp_transferred_bytes;{"file": "update.bin","topic": "ftp/update.bin/transferred"};{"_count": 6, "_sum": 11636};1;True

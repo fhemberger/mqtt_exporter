@@ -1,0 +1,5 @@
+paho-mqtt
+prometheus-client
+PyYAML
+yamlreader
+pytest

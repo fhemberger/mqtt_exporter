@@ -1,0 +1,99 @@
+# Config file for MQTT prometheus exporter
+
+
+# Metric definitions
+metrics:
+  # - name:     'mqtt_broker'
+  #   help:     'System events from broker'
+  #   type:     'gauge'
+  #   topic:    '$SYS/broker/#'
+  #   label_configs:
+  #     - source_labels:  ['__msg_topic__']
+  #       target_label:   '__topic__'
+  #     - source_labels:  ['__value__']
+  #       regex:          '^(\d+([,.]\d*)?)$|^([,.]\d+)$'
+  #       action:         'keep'
+
+  - name:     'mqtt_broker_version'
+    help:     'Mosquitto version (static)'
+    type:     'gauge'
+    topic:    '$SYS/broker/version'
+    label_configs:
+      - source_labels:  ['__msg_topic__']
+        target_label:   '__topic__'
+      - source_labels:  ['__value__']
+        regex:          '^\D+((?:\d+[\.]?)+)$'
+        target_label:   'version'
+        replacement:    '\1'
+        action:         'replace'
+      - source_labels:  ['__value__']
+        replacement:    '1'
+        target_label:   '__value__'
+        action:         'replace'
+
+  - name:     'mqtt_broker_changeset'
+    help:     'Mosquitto build changeset (static)'
+    type:     'gauge'
+    topic:    '$SYS/broker/changeset'
+    label_configs:
+      - source_labels:  ['__msg_topic__']
+        target_label:   '__topic__'
+      - source_labels:  ['__value__']
+        target_label:   'changeset'
+        action:         'replace'
+      - source_labels:  ['__value__']
+        replacement:    '1'
+        target_label:   '__value__'
+        action:         'replace'
+
+  - name:     'mqtt_broker_timestamp'
+    help:     'Mosquitto build timestamp (static)'
+    type:     'gauge'
+    topic:    '$SYS/broker/timestamp'
+    label_configs:
+      - source_labels:  ['__msg_topic__']
+        target_label:   '__topic__'
+      - source_labels:  ['__value__']
+        target_label:   'timestamp'
+        action:         'replace'
+      - source_labels:  ['__value__']
+        replacement:    '1'
+        target_label:   '__value__'
+        action:         'replace'
+
+  - name: "fhem_temperature_celsius"
+    help: "443 Mhz Sensors, Temperature in C"
+    type: "gauge"
+    topic: "fhem/+/+/temperature"
+    label_configs:
+      - source_labels:  ['__msg_topic__']
+        target_label:   '__topic__'
+      - source_labels:  ["__msg_topic__"]
+        regex: "fhem/([^/]+).*"
+        target_label: "location"
+        replacement: '\1'
+        action: "replace"
+  - name: "fhem_humidity_percent"
+    help: "443 Mhz Sensors, Humidity in %"
+    type: "gauge"
+    topic: "fhem/+/+/humidity"
+    label_configs:
+      - source_labels:  ['__msg_topic__']
+        target_label:   '__topic__'
+      - source_labels:  ["__msg_topic__"]
+        regex: "fhem/([^/]+).*"
+        target_label: "location"
+        replacement: '\1'
+        action: "replace"
+  - name: "fhem_rain_mm"
+    help: "443 Mhz Sensors, rain in mm/m2"
+    type: "counter"
+    topic: "fhem/+/+/rain_total"
+    label_configs:
+      - source_labels:  ['__msg_topic__']
+        target_label:   '__topic__'
+      - source_labels:  ["__msg_topic__"]
+        regex: "fhem/([^/]+).*"
+        target_label: "location"
+        replacement: '\1'
+        action: "replace"

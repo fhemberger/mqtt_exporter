@@ -41,7 +41,9 @@ docker run -d \
  - PyYAML
  - yamlreader
 
+## Testing
 
+pytest is used to test the functionality see [tests/readme.md](tests/readme.md)
 ## TODO
 
 - Add persistence of metrics on restart

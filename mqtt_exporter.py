@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from copy import copy, deepcopy
+import json
 import prometheus_client as prometheus
 from collections import defaultdict
 import logging
@@ -15,6 +17,12 @@ import sys
 from yamlreader import yaml_load
 
 VERSION = '1.2.4'
+SUFFIXES_PER_TYPE = {
+    "gauge": [''], # add at least an empty suffix
+    "counter": ['total'],
+    "summary": ['sum', 'count'],
+    "histogram": ['sum', 'count', 'bucket'],
+}
 
 
 def _read_config(config_path):
@@ -43,7 +51,7 @@ def _read_config(config_path):
 def _parse_config_and_add_defaults(config_from_file):
     """Parse content of configfile and add default values where needed"""
 
-    config = {}
+    config = deepcopy(config_from_file)
     logging.debug(f'_parse_config Config from file: {str(config_from_file)}')
     # Logging values ('logging' is optional in config
     if 'logging' in config_from_file:
@@ -192,7 +200,7 @@ def _log_setup(logging_config):
 
 
 # noinspection PyUnusedLocal
-def _on_connect(client, userdata, flags, rc):
+def _on_connect(client, userdata, flags, rc): #pylint: disable=unused-argument,invalid-name
     """The callback for when the client receives a CONNACK response from the server."""
     logging.info(f'Connected to broker, result code {str(rc)}')
 
@@ -355,14 +363,15 @@ def _export_to_prometheus(name, metric, labels):
             label_names, label_values, metric, name, value)
         logging.debug(
             f"_export_to_prometheus metric ({metric['type']}): {name}{labels} updated with value: {value}")
+        if logging.DEBUG >= logging.root.level: # log test data only in debugging mode
+            _log_test_data(metric, labels['topic'], value)
+
     except KeyError:
-        logging.warning(
-            f"Metric type: {metric['type']}, is not a valid metric type. Must be one of: {list(prometheus_metric_types.keys())}")
-
-
-def gauge(label_names, label_values, metric, name, value):
-    """Define metric as Gauge, setting it to 'value'"""
-    get_prometheus_metric(label_names, label_values, metric, name).set(value)
+        if metric['type'] not in prometheus_metric_types.keys():
+            logging.warning(
+                f"Metric type: {metric['type']}, is not a valid metric type. Must be one of: {list(prometheus_metric_types.keys())}")
+        else:
+            raise
 
 
 def get_prometheus_metric(label_names, label_values, metric, name, buckets=None):
@@ -377,7 +386,7 @@ def get_prometheus_metric(label_names, label_values, metric, name, buckets=None)
         metric_type = metric['type'].lower()
         if metric_type == 'histogram' and buckets:
             metric['prometheus_metric']['base'] = prometheus_metric_types[metric_type](name, metric['help'],
-                                                        list(label_names), buckets)
+                                                        list(label_names), buckets=buckets)
         else:
             metric['prometheus_metric']['base'] = prometheus_metric_types[metric_type](name, metric['help'],
                                                                                        list(label_names))
@@ -386,6 +395,38 @@ def get_prometheus_metric(label_names, label_values, metric, name, buckets=None)
         metric['prometheus_metric'][key] = metric['prometheus_metric']['base'].labels(
             *list(label_values))
     return metric['prometheus_metric'][key]
+
+def _log_test_data(metric, topic, value):
+    try:
+        base_metric = metric['prometheus_metric']['base'].collect()
+        samples = {}
+        for child_metric in base_metric:
+            if child_metric.name.endswith('_last_received'):
+                # ignore derived metrics '*._last_received'
+                continue
+            first_sample = child_metric.samples[0]
+            for first_sample in child_metric.samples:
+                if first_sample.labels.get('topic', '') == topic:
+                    samples[first_sample.name] = first_sample
+
+            if len(samples) == 1:
+                logging.debug(f"TEST_DATA: {topic}; {value}; {child_metric.name}; {json.dumps(first_sample.labels)}; {first_sample.value}; 0; True") 
+            else:
+                out_value = {}
+                labels = first_sample.labels
+                for sample_name, first_sample in samples.items():
+                    suffix = sample_name[len(child_metric.name):] 
+                    out_value[suffix] = first_sample.value
+                    if suffix == "_bucket": # buckets have extra "le" label
+                        labels = first_sample.lables 
+                logging.debug(f"TEST_DATA: {topic}; {value}; {child_metric.name}; {json.dumps(labels)}; {json.dumps(out_value)}; 0; True") 
+    except: #pylint: disable=bare-except
+        logging.exception("Failed to log TEST_DATA. ignoring.")
+
+
+def gauge(label_names, label_values, metric, name, value):
+    """Define metric as Gauge, setting it to 'value'"""
+    get_prometheus_metric(label_names, label_values, metric, name).set(value)
 
 
 def counter(label_names, label_values, metric, name, value):

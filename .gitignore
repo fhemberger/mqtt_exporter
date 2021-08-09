@@ -4,3 +4,20 @@ out
 gen
 venv
 conf/*
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# pytest cache files
+.pytest_cache
+
+# VScode project files 
+.vscode/
+
+# tmp files
+**/.~*
+**/tmp_data/*
+!**/tmp_data/.git_keep
+.DS_Store

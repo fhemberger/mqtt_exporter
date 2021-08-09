@@ -1,0 +1,76 @@
+
+# Logging
+logging:
+  # logfile:  'conf/mqttexperter.log'                                     # Optional default '' (stdout)
+  level:    'debug'                                 # Optional default 'info'
+
+timescale: 0
+
+# Metric definitions
+metrics:
+  - name:     'ftp_transferred_bytes'
+    help:     'data transferred in bytes pe file'
+    type:     'summary'
+    topic:    'ftp/+/transferred'
+    label_configs:
+      - source_labels:  ['__msg_topic__']
+        target_label:   '__topic__'
+      - source_labels:  ["__msg_topic__"]
+        regex: "ftp/([^/]+).*"
+        target_label: "file"
+        replacement: '\1'
+        action: "replace"
+  - name:     'network_ping_ms'
+    help:     'ping response in ms'
+    type:     'histogram'
+    topic:    'network/+/+/ping'
+    buckets:  '0.5,5,10'
+    label_configs:
+      - source_labels:  ['__msg_topic__']
+        target_label:   '__topic__'
+      - source_labels:  ["__msg_topic__"]
+        regex: "network/([^/]+).*"
+        target_label: "network"
+        replacement: '\1'
+        action: "replace"
+      - source_labels:  ["__msg_topic__"]
+        regex: "network/[^/]+/([^/]+).*"
+        target_label: "server"
+        replacement: '\1'
+        action: "replace"
+  - name: "fhem_temperature_celsius"
+    help: "443 Mhz Sensors, Temperature in C"
+    type: "gauge"
+    topic: "fhem/+/+/temperature"
+    label_configs:
+      - source_labels:  ['__msg_topic__']
+        target_label:   '__topic__'
+      - source_labels:  ["__msg_topic__"]
+        regex: "fhem/([^/]+).*"
+        target_label: "location"
+        replacement: '\1'
+        action: "replace"
+  - name: "fhem_humidity_percent"
+    help: "443 Mhz Sensors, Humidity in %"
+    type: "gauge"
+    topic: "fhem/+/+/humidity"
+    label_configs:
+      - source_labels:  ['__msg_topic__']
+        target_label:   '__topic__'
+      - source_labels:  ["__msg_topic__"]
+        regex: "fhem/([^/]+).*"
+        target_label: "location"
+        replacement: '\1'
+        action: "replace"
+  - name: "fhem_rain_mm"
+    help: "443 Mhz Sensors, rain in mm/m2"
+    type: "counter"
+    topic: "fhem/+/+/rain_total"
+    label_configs:
+      - source_labels:  ['__msg_topic__']
+        target_label:   '__topic__'
+      - source_labels:  ["__msg_topic__"]
+        regex: "fhem/([^/]+).*"
+        target_label: "location"
+        replacement: '\1'
+        action: "replace"

@@ -1,0 +1,15 @@
+in_topic;in_payload;out_name;out_labels;out_value;delay;assert
+$SYS/broker/version;' 2.0.11'; mqtt_broker_version; {"topic": "$SYS/broker/version", "version": "2.0.11"}; 1.0; 0; True
+fhem/Terrasse/TerrasseWeiss/humidity; 20.0; fhem_humidity_percent; {"location": "Terrasse", "topic": "fhem/Terrasse/TerrasseWeiss/humidity"}; 20.0; 0; True
+fhem/Terrasse/TermPearl02/temperature; 17.5; fhem_temperature_celsius; {"location": "Terrasse", "topic": "fhem/Terrasse/TermPearl02/temperature"}; 17.5; 0; True
+fhem/Terrasse/TermPearl02/humidity; 20.0; fhem_humidity_percent; {"location": "Terrasse", "topic": "fhem/Terrasse/TermPearl02/humidity"}; 20.0; 0; True
+fhem/Terrasse/TermPearl02/humidity; 21.0; fhem_humidity_percent; {"location": "Terrasse", "topic": "fhem/Terrasse/TermPearl02/humidity"}; 21.0; 0; True
+fhem/Terrasse/TermPearl02/temperature; 17.6; fhem_temperature_celsius; {"location": "Terrasse", "topic": "fhem/Terrasse/TermPearl02/temperature"}; 17.6; 0; True
+fhem/Garten/TermFetanten01/humidity; 66.0; fhem_humidity_percent; {"location": "Garten", "topic": "fhem/Garten/TermFetanten01/humidity"}; 66.0; 0; True
+fhem/Terrasse/TermPearl02/temperature; 17.5; fhem_temperature_celsius; {"location": "Terrasse", "topic": "fhem/Terrasse/TermPearl02/temperature"}; 17.5; 0; True
+$SYS/broker/version;' 2.0.11'; mqtt_broker_version; {"topic": "$SYS/broker/version", "version": "2.0.11"}; 1.0; 0; True
+fhem/Garten/rainmeter01/rain_total; 106.426; fhem_rain_mm; {"location": "Garten", "topic": "fhem/Garten/rainmeter01/rain_total"}; {"_total": 106.426, "_created": 1628459492.695393}; 0; True
+fhem/Garten/TermFetanten01/humidity; 65.0; fhem_humidity_percent; {"location": "Garten", "topic": "fhem/Garten/TermFetanten01/humidity"}; 65.0; 0; True
+fhem/paz/TermPearl01/temperature; 24.3; fhem_temperature_celsius; {"location": "paz", "topic": "fhem/paz/TermPearl01/temperature"}; 24.3; 0; True
+fhem/paz/TermPearl01/humidity; 17.0; fhem_humidity_percent; {"location": "paz", "topic": "fhem/paz/TermPearl01/humidity"}; 17.0; 0; True
+fhem/Terrasse/TerrasseWeiss/humidity; 20.0; fhem_humidity_percent; {"location": "paz", "topic": "fhem/paz/TermPearl01/humidity"}; 17.0; 0; True
