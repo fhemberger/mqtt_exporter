@@ -137,7 +137,7 @@ class FakeMSG():
 param_test_data_dirs, param_test_data_sets = _get_test_data()
 
 @pytest.mark.parametrize("metrics,mqtt_data_set,timescale", param_test_data_sets, ids=param_test_data_dirs)
-def test_update_metrics(request, metrics, mqtt_data_set, timescale):
+def test_update_metrics(caplog, request, metrics, mqtt_data_set, timescale):
     """
     reads a label_config and some mqtt data and asserts if they are in the metrics
     """
@@ -170,5 +170,5 @@ def test_update_metrics(request, metrics, mqtt_data_set, timescale):
                 ) == expected_result ) == mqtt_data[MqttCVS.expected_assert]
         time.sleep(mqtt_data[MqttCVS.delay] * timescale)
         i += 1
-    # for record in caplog.records:
-    #     assert record.levelno < logging.ERROR
+    for record in caplog.records:
+        assert record.levelno < logging.ERROR

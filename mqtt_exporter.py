@@ -418,7 +418,7 @@ def _log_test_data(metric, topic, value):
                     suffix = sample_name[len(child_metric.name):] 
                     out_value[suffix] = first_sample.value
                     if suffix == "_bucket": # buckets have extra "le" label
-                        labels = first_sample.lables 
+                        labels = first_sample.labels
                 logging.debug(f"TEST_DATA: {topic}; {value}; {child_metric.name}; {json.dumps(labels)}; {json.dumps(out_value)}; 0; True") 
     except: #pylint: disable=bare-except
         logging.exception("Failed to log TEST_DATA. ignoring.")

@@ -4,6 +4,7 @@ Configurable general purpose Prometheus exporter for MQTT.
 
 Subscribes to one or more MQTT topics, and lets you configure prometheus metrics based on pattern matching.
 
+[![Test with pytest](https://github.com/fhemberger/mqtt_exporter/actions/workflows/test.yml/badge.svg)](https://github.com/fhemberger/mqtt_exporter/actions/workflows/test.yml)[![CodeQL](https://github.com/fhemberger/mqtt_exporter/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/fhemberger/mqtt_exporter/actions/workflows/codeql-analysis.yml)
 
 ## Usage
 

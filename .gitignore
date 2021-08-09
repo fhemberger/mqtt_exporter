@@ -19,5 +19,5 @@ __pycache__/
 # tmp files
 **/.~*
 **/tmp_data/*
-!**/tmp_data/.git_keep
+!**/tmp_data/.gitkeep
 .DS_Store
