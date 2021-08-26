@@ -15,11 +15,13 @@ import time
 import signal
 import sys
 from yamlreader import yaml_load
+import utils.prometheus_additions
 
 VERSION = '1.2.4'
 SUFFIXES_PER_TYPE = {
-    "gauge": [''], # add at least an empty suffix
+    "gauge": [''],  # add at least an empty suffix
     "counter": ['total'],
+    "counter_absolute": ['total'],
     "summary": ['sum', 'count'],
     "histogram": ['sum', 'count', 'bucket'],
 }
@@ -116,6 +118,9 @@ def parse_and_validate_metric_config(metric, metrics):
                                                'action'])
                 label_configs.append(lc)
         m['label_configs'] = label_configs
+    # legacy config handling move 'buckets' to params directory
+    if m.get('buckets'):
+        m.setdefault('parameters', {})['buckets'] = (m['buckets'])
     metrics[m['name']] = m
 
 
@@ -200,7 +205,7 @@ def _log_setup(logging_config):
 
 
 # noinspection PyUnusedLocal
-def _on_connect(client, userdata, flags, rc): #pylint: disable=unused-argument,invalid-name
+def _on_connect(client, userdata, flags, rc):  # pylint: disable=unused-argument,invalid-name
     """The callback for when the client receives a CONNACK response from the server."""
     logging.info(f'Connected to broker, result code {str(rc)}')
 
@@ -286,14 +291,14 @@ def _update_metrics(metrics, msg):
 
         labels = finalize_labels(labels)
 
-        derived_metric  = metric.setdefault('derived_metric',
-            # Add derived metric for when the message was last received (timestamp in milliseconds)
-            {
-                'name': f"{metric['name']}_last_received",
-                'help': f"Last received message for '{metric['name']}'",
-                'type': 'gauge'
-            }
-        )
+        derived_metric = metric.setdefault('derived_metric',
+                                           # Add derived metric for when the message was last received (timestamp in milliseconds)
+                                           {
+                                               'name': f"{metric['name']}_last_received",
+                                               'help': f"Last received message for '{metric['name']}'",
+                                               'type': 'gauge'
+                                           }
+                                           )
         derived_labels = {'topic': metric['topic'],
                           'value': int(round(time.time() * 1000))}
 
@@ -342,10 +347,17 @@ def _mqtt_init(mqtt_config, metrics):
 
 def _export_to_prometheus(name, metric, labels):
     """Export metric and labels to prometheus."""
-    valid_types = ['gauge', 'counter', 'summary', 'histogram']
+    metric_wrappers = {'gauge': GaugeWrapper,
+                                'counter': CounterWrapper,
+                                'counter_absolute': CounterAbsoluteWrapper,
+                               'summary': SummaryWrapper,
+                               'histogram': HistogramWrapper}
+    valid_types = metric_wrappers.keys()
     if metric['type'] not in valid_types:
-        logging.warning(
-            f"Metric type: {metric['type']}, is not a valid metric type. Must be one of: {valid_types}")
+        logging.error(
+            f"Metric type: {metric['type']}, is not a valid metric type. Must be one of: {valid_types} - ingnoring"
+        )
+        return
 
     value = labels['value']
     del labels['value']
@@ -353,52 +365,29 @@ def _export_to_prometheus(name, metric, labels):
     sorted_labels = _get_sorted_tuple_list(labels)
     label_names, label_values = list(zip(*sorted_labels))
 
-    prometheus_metric_types = {'gauge': gauge,
-                               'counter': counter,
-                               'summary': summary,
-                               'histogram': histogram}
 
-    try:
-        prometheus_metric_types[metric['type'].lower()](
-            label_names, label_values, metric, name, value)
-        logging.debug(
-            f"_export_to_prometheus metric ({metric['type']}): {name}{labels} updated with value: {value}")
-        if logging.DEBUG >= logging.root.level: # log test data only in debugging mode
-            _log_test_data(metric, labels['topic'], value)
+    prometheus_metric = None
+    if not metric.get('prometheus_metric') or not metric['prometheus_metric'].get('parent'):
+        # parent metric not seen before, create metric
+        additional_parameters = metric.get('parameters', {})
 
-    except KeyError:
-        if metric['type'] not in prometheus_metric_types.keys():
-            logging.warning(
-                f"Metric type: {metric['type']}, is not a valid metric type. Must be one of: {list(prometheus_metric_types.keys())}")
-        else:
-            raise
-
-
-def get_prometheus_metric(label_names, label_values, metric, name, buckets=None):
-    key = ':'.join([''.join(label_names), ''.join(label_values)])
-    if not metric.get('prometheus_metric') or not metric['prometheus_metric'].get('base'):
+        metric_wrapper = metric_wrappers[metric['type']] 
+        prometheus_metric = metric_wrapper(metric['name'], metric['help'], label_names, **additional_parameters)
         metric['prometheus_metric'] = {}
-        prometheus_metric_types = {'gauge': prometheus.Gauge,
-                                   'counter': prometheus.Counter,
-                                   'summary': prometheus.Summary,
-                                   'histogram': prometheus.Histogram}
+        metric['prometheus_metric']['parent'] = prometheus_metric
+    else:
+        prometheus_metric = metric['prometheus_metric']['parent']
 
-        metric_type = metric['type'].lower()
-        if metric_type == 'histogram' and buckets:
-            metric['prometheus_metric']['base'] = prometheus_metric_types[metric_type](name, metric['help'],
-                                                        list(label_names), buckets=buckets)
-        else:
-            metric['prometheus_metric']['base'] = prometheus_metric_types[metric_type](name, metric['help'],
-                                                                                       list(label_names))
+    prometheus_metric.update(label_values, value)
 
-    if key not in metric['prometheus_metric'] or not metric['prometheus_metric'][key]:
-        metric['prometheus_metric'][key] = metric['prometheus_metric']['base'].labels(
-            *list(label_values))
-    return metric['prometheus_metric'][key]
+    logging.debug(
+        f"_export_to_prometheus metric ({metric['type']}): {name}{labels} updated with value: {value}")
+    if logging.DEBUG >= logging.root.level:  # log test data only in debugging mode
+        _log_test_data(metric, labels['topic'], value)
 
 def _log_test_data(metric, topic, value):
     try:
-        base_metric = metric['prometheus_metric']['base'].collect()
+        base_metric = metric['prometheus_metric']['parent'].metric.collect()
         samples = {}
         for child_metric in base_metric:
             if child_metric.name.endswith('_last_received'):
@@ -410,44 +399,98 @@ def _log_test_data(metric, topic, value):
                     samples[first_sample.name] = first_sample
 
             if len(samples) == 1:
-                logging.debug(f"TEST_DATA: {topic}; {value}; {child_metric.name}; {json.dumps(first_sample.labels)}; {first_sample.value}; 0; True") 
+                logging.debug(
+                    f"TEST_DATA: {topic}; {value}; {child_metric.name}; {json.dumps(first_sample.labels)}; {first_sample.value}; 0; True")
             else:
                 out_value = {}
                 labels = first_sample.labels
                 for sample_name, first_sample in samples.items():
-                    suffix = sample_name[len(child_metric.name):] 
+                    suffix = sample_name[len(child_metric.name):]
                     out_value[suffix] = first_sample.value
-                    if suffix == "_bucket": # buckets have extra "le" label
+                    if suffix == "_bucket":  # buckets have extra "le" label
                         labels = first_sample.labels
-                logging.debug(f"TEST_DATA: {topic}; {value}; {child_metric.name}; {json.dumps(labels)}; {json.dumps(out_value)}; 0; True") 
-    except: #pylint: disable=bare-except
+                logging.debug(
+                    f"TEST_DATA: {topic}; {value}; {child_metric.name}; {json.dumps(labels)}; {json.dumps(out_value)}; 0; True")
+    except:  # pylint: disable=bare-except
         logging.exception("Failed to log TEST_DATA. ignoring.")
 
 
-def gauge(label_names, label_values, metric, name, value):
-    """Define metric as Gauge, setting it to 'value'"""
-    get_prometheus_metric(label_names, label_values, metric, name).set(value)
+class GaugeWrapper():
+    """
+    Wrapper to provide generic interface to Gauge metric
+    """
+    def __init__(self, name, help_text, label_names, *args, **kwargs) -> None:
+        self.metric = prometheus.Gauge(
+            name, help_text, list(label_names)
+        )
 
+    def update(self, label_values, value):
+        child = self.metric.labels(*label_values)
+        child.set(value)
+        return child
 
-def counter(label_names, label_values, metric, name, value):
-    """Define metric as Counter, increasing it by 'value'"""
-    get_prometheus_metric(label_names, label_values, metric, name).inc(value)
+class CounterWrapper():
+    """
+    Wrapper to provide generic interface to Counter metric
+    """
+    def __init__(self, name, help_text, label_names, *args, **kwargs) -> None:
+        self.metric = prometheus.Counter(
+            name, help_text, list(label_names)
+        )
 
+    def update(self, label_values, value):
+        child = self.metric.labels(*label_values)
+        child.inc(value)
+        return child
 
-def summary(label_names, label_values, metric, name, value):
-    """Define metric as summary, observing 'value'"""
-    get_prometheus_metric(label_names, label_values,
-                          metric, name).observe(value)
+class CounterAbsoluteWrapper():
+    """
+    Wrapper to provide generic interface to CounterAbsolute metric
+    """
 
+    def __init__(self, name, help_text, label_names, *args, **kwargs) -> None:
+        self.metric = utils.prometheus_additions.CounterAbsolute(
+            name, help_text, list(label_names)
+        )
 
-def histogram(label_names, label_values, metric, name, value):
-    """Define metric as histogram, observing 'value'"""
-    buckets = None
-    if 'buckets' in metric and metric['buckets']:
-        buckets = metric['buckets'].split(',')
+    def update(self, label_values, value):
+        child = self.metric.labels(*label_values)
+        child.set(value)
+        return child
 
-    get_prometheus_metric(label_names, label_values,
-                          metric, name, buckets).observe(value)
+class SummaryWrapper():
+    """
+    Wrapper to provide generic interface to Summary metric
+    """
+
+    def __init__(self, name, help_text, label_names, *args, **kwargs) -> None:
+        self.metric = prometheus.Summary(
+            name, help_text, list(label_names)
+        )
+
+    def update(self, label_values, value):
+        child = self.metric.labels(*label_values)
+        child.observe(value)
+        return child
+
+class HistogramWrapper():
+    """
+    Wrapper to provide generic interface to Summary metric
+    """
+
+    def __init__(self, name, help_text, label_names, *args, **kwargs) -> None:
+        params = {}
+        if kwargs.get('buckets'):
+            params['buckets'] = kwargs['buckets'].split(',')
+
+        self.metric = prometheus.Histogram(
+            name, help_text, list(label_names), **params
+        )
+
+    def update(self, label_values, value):
+        child = self.metric.labels(*label_values)
+        child.observe(value)
+        return child
 
 
 def add_static_metric(timestamp):

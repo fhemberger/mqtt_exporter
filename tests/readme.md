@@ -1,7 +1,7 @@
 # Tests with pytest
 
 make sure pytest is installed `pip install -r requirements-dev.txt` 
-run `pytest -s -o log_cli=true` from the repository root  
+run `pytest -s -o log_cli=true -o log_cli_level="DEBUG"` from the repository root  
 
 ## test_mqtt_explorer.py:test_update_metrics
 

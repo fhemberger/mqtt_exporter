@@ -1,0 +1,13 @@
+in_topic;in_payload;out_name;out_labels;out_value;delay;assert
+fhem/Garten/rainmeter01/rain_total;4.8;fhem_rain_mm;{"location":"Garten","topic": "fhem/Garten/rainmeter01/rain_total"};4.8;4;True
+fhem/Garten/rainmeter01/rain_total;11.1;fhem_rain_mm;{"location":"Garten","topic": "fhem/Garten/rainmeter01/rain_total"};11.1;3;True
+fhem/Garten/rainmeter01/rain_total;110;fhem_rain_mm;{"location":"Garten","topic": "fhem/Garten/rainmeter01/rain_total"};110;5;True
+fhem/Garten/rainmeter01/rain_total;134.8;fhem_rain_mm;{"location":"Garten","topic": "fhem/Garten/rainmeter01/rain_total"};134.8;4;True
+fhem/Garten/rainmeter01/rain_total;211.1;fhem_rain_mm;{"location":"Garten","topic": "fhem/Garten/rainmeter01/rain_total"};211.1;3;True
+fhem/Garten/rainmeter01/rain_total;155.9;fhem_rain_mm;{"location":"Garten","topic": "fhem/Garten/rainmeter01/rain_total"};155.9;5;True
+fhem/Garten/rainmeter01/rain_total;2134.8;fhem_rain_mm;{"location":"Garten","topic": "fhem/Garten/rainmeter01/rain_total"};2134.8;4;True
+fhem/Garten/rainmeter01/rain_total;11.1;fhem_rain_mm;{"location":"Garten","topic": "fhem/Garten/rainmeter01/rain_total"};11.1;3;True
+fhem/Garten/rainmeter01/rain_total;155.9;fhem_rain_mm;{"location":"Garten","topic": "fhem/Garten/rainmeter01/rain_total"};155.9;5;True
+fhem/Garten/rainmeter01/rain_total;23134.8;fhem_rain_mm;{"location":"Garten","topic": "fhem/Garten/rainmeter01/rain_total"};23134.8;4;True
+fhem/Garten/rainmeter01/rain_total;1233123.123123123123;fhem_rain_mm;{"location":"Garten","topic": "fhem/Garten/rainmeter01/rain_total"};1233123.123123123123;3;True
+fhem/Garten/rainmeter01/rain_total;1233123.123123123124;fhem_rain_mm;{"location":"Garten","topic": "fhem/Garten/rainmeter01/rain_total"};1233123.123123123124;5;True

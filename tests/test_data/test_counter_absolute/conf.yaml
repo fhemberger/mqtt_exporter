@@ -1,0 +1,22 @@
+
+# Logging
+logging:
+  # logfile:  'conf/mqttexperter.log'                                     # Optional default '' (stdout)
+  level:    'debug'                                 # Optional default 'info'
+
+timescale: 0
+
+# Metric definitions
+metrics:
+  - name: "fhem_rain_mm"
+    help: "443 Mhz Sensors, rain in mm/m2"
+    type: "counter_absolute"
+    topic: "fhem/+/+/rain_total"
+    label_configs:
+      - source_labels:  ['__msg_topic__']
+        target_label:   '__topic__'
+      - source_labels:  ["__msg_topic__"]
+        regex: "fhem/([^/]+).*"
+        target_label: "location"
+        replacement: '\1'
+        action: "replace"
