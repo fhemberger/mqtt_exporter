@@ -19,7 +19,7 @@ class CounterAbsolute(prometheus.Counter):
     An example for a CounterAbsolute:
         from prometheus_client import Counter
         c = CounterAbsolute('my_failures_total', 'Description of counter')
-        c.set(1123.63213)  # set to a absoluter value, if lower than last value Counter gets reset.
+        c.set(1123.63213)  # Set to an absolute value. If lower than last value, Counter gets reset.
 
     """
     _type = 'counter'
