@@ -1,4 +1,4 @@
-FROM python:3.10.2-alpine
+FROM python:3.10.3-alpine
 
 LABEL org.opencontainers.image.title=mqtt_exporter
 LABEL org.opencontainers.image.description="Prometheus exporter for MQTT."
