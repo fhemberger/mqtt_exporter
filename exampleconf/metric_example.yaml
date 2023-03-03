@@ -3,6 +3,7 @@ metrics:
   - name:     'mqtt_example'                        # Required(unique, if multiple, only last entry is kept)
     help:     'MQTT example gauge'                  # Required
     type:     'gauge'                               # Required ('gauge', 'counter', 'summary' or 'histogram')
+    expires:  60                                    # Optional time in seconds after last update to remove metric
     #parameters:                                    # Optional parameters for certain metrics
     #   buckets:                                    # Optional (Passed as 'buckets' argument to Histogram)
     #     - .1
