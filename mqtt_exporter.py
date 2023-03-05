@@ -312,16 +312,19 @@ def _update_metrics(metrics, msg):
 
         if metric.get('expires'):
             if metric.get('expiration_timer'):
-                metric['expiration_timer'].cancel()
+                metric.get('expiration_timer').cancel()
+                logging.debug(f"_update_metric Canceled existing timer for {metric.get('name')}")
 
-            metric['expiration_timer'] = threading.Timer(metric.get('expires'), _remove_metric, args=(metric, derived_metric))
+            metric['expiration_timer'] = threading.Timer(metric.get('expires'), _clear_metric, args=(metric, derived_metric))
             metric['expiration_timer'].start()
+            logging.debug(f"_update_metric Set a {metric.get('expires')} second expiration timer for {metric.get('name')}")
 
 
-def _remove_metric(metric, derived_metric):
+def _clear_metric(metric, derived_metric):
     with METRICS_LOCK:
         metric['prometheus_metric']['parent'].clear()
         derived_metric['prometheus_metric']['parent'].clear()
+        logging.debug(f"_clear_metric cleared metric {metric.get('name')}")
 
 
 # noinspection PyUnusedLocal
@@ -474,10 +477,6 @@ class CounterWrapper():
         child.inc(value)
         return child
 
-class HistogramWrapper():
-    """
-    Wrapper to provide generic interface to Summary metric
-    """
 
 class CounterAbsoluteWrapper():
     """
