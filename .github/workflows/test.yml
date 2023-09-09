@@ -21,9 +21,18 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v3
 
-      - name: GitHub Action for pytest
-        uses: cclauss/GitHub-Action-for-pytest@0.5.0
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          args: pip install -r requirements-frozen.txt; pytest -v -s --log-level=DEBUG -o log_cli=true
+          python-version: '3.11.5'
+          cache: 'pip'
 
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-frozen.txt
 
+      - name: Test with pytest
+        run: |
+          pip install pytest
+          pytest --verbose --capture=no --log-level=DEBUG -o log_cli=true

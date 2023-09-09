@@ -1,5 +1,5 @@
-paho-mqtt==1.5.1
-prometheus-client==0.11.0
-PyYAML==5.4.1
+paho-mqtt==1.6.1
+prometheus-client==0.17.1
+PyYAML==6.0.1
 six==1.16.0
 yamlreader==3.0.4
