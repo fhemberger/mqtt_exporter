@@ -455,8 +455,21 @@ class GaugeWrapper():
 
     def update(self, label_values, value):
         child = self.metric.labels(*label_values)
+
+        # Check if value is a string that looks like a JSON object
+        if isinstance(value, str) and value.startswith('{') and value.endswith('}'):
+            try:
+                parsed_value = json.loads(value)
+                if 'value' in parsed_value:
+                    value = float(parsed_value['value'])
+                else:
+                    logging.warning(f"JSON object does not contain 'value' field: {value}")
+            except json.JSONDecodeError:
+                logging.warning(f"Failed to parse value as JSON: {value}")
+
         child.set(value)
         return child
+
 
 
 class CounterWrapper():
