@@ -4,7 +4,6 @@ py test testing for mqtt_exporter
 """
 
 import csv
-import distutils.util
 import json
 from json.decoder import JSONDecodeError
 import os
@@ -40,6 +39,15 @@ def delete_temp_test_files():
         os.remove(os.path.join(TMP_DIR, file))
 
 
+def strtobool(value: str) -> bool:
+    value = value.strip().lower()
+    if value in {"y", "yes", "t", "true", "on", "1"}:
+        return True
+    if value in {"n", "no", "f", "false", "off", "0"}:
+        return False
+    raise ValueError(f"invalid truth value {value!r}")
+
+
 class MqttCVS:
     in_topic = "in_topic"
     in_payload	= "in_payload"
@@ -67,22 +75,22 @@ def _get_mqtt_data(file_name):
             except json.decoder.JSONDecodeError as jde:
                 logging.error(f"json.decoder.JSONDecodeError while decoding {row.get(MqttCVS.out_labels, '{}')}")
                 raise jde
-            # Value could be a JSON, a float or anthing else. 
-            try: 
+            # Value could be a JSON, a float or anthing else.
+            try:
                 row[MqttCVS.out_value] = float(row.get(MqttCVS.out_value))
             except ValueError:
                 try:
                     row[MqttCVS.out_value] = json.loads(row.get(MqttCVS.out_value))
                 except (JSONDecodeError, TypeError):
-                    pass # leave as it is 
+                    pass # leave as it is
             # set delay to 0 if not a number
-            try: 
+            try:
                 row[MqttCVS.delay] = float(row.get(MqttCVS.delay, 0))
             except ValueError:
                 row[MqttCVS.delay] = 0
-            # convert string to bool for expected assertion. 
+            # convert string to bool for expected assertion.
             row[MqttCVS.expected_assert] = bool(
-                distutils.util.strtobool(row.get(MqttCVS.expected_assert, "True").strip()))
+                strtobool(row.get(MqttCVS.expected_assert, "True")))
             mqtt_data.append(row)
     return mqtt_data
 
@@ -93,9 +101,9 @@ def _get_test_data():
     Each subdirectory is expected to contain a `conf.yaml` file with a metrics config (like in the config file)
     and a CSV file `mqtt_msg.csv` with fake mqtt data ";" delimited:
     `in_topic;in_payload;out_name;out_labels;out_value;delay;assert`
-    where 
+    where
     lables_out: json string with all expected lables
-    delay: delay until the next line is processed 
+    delay: delay until the next line is processed
     assert: expected assert result, True if out_value matches prometheus metric
     """
     test_data_sets = []
@@ -110,7 +118,7 @@ def _get_test_data():
         config_yaml = mqtt_exporter._read_config(conf_file)
         config_yaml = mqtt_exporter._parse_config_and_add_defaults(config_yaml)
         test_data_sets.append((
-                config_yaml['metrics'], 
+                config_yaml['metrics'],
                 _get_mqtt_data(mqtt_data_file),
                 config_yaml.get('timescale', 0),
             ))
@@ -129,7 +137,7 @@ def _get_suffixes_by_metric_name(metrics, metric_name):
             yield suffix
         else:
             yield f"_{suffix}"
-    
+
 
 class FakeMSG():
     """"Simulate MQTT Msg"""
@@ -158,7 +166,7 @@ def test_update_metrics(caplog, request, metrics, mqtt_data_set, timescale):
         mqtt_exporter._on_message(None, metrics, msg)
         prometheus.REGISTRY.collect()
         prometheus.write_to_textfile(os.path.join(TMP_DIR, f"metric_{request.node.callspec.id}_{i:02}.txt"), prometheus.REGISTRY)
-        # depending on metric type one or more metrics with different suffixes are added. 
+        # depending on metric type one or more metrics with different suffixes are added.
         for suffix in _get_suffixes_by_metric_name(metrics, mqtt_data[MqttCVS.out_name]):
             # historgram with buckets need special handling, remove bucket labe label 'le'
             labels = mqtt_data[MqttCVS.out_labels].copy()
@@ -169,7 +177,7 @@ def test_update_metrics(caplog, request, metrics, mqtt_data_set, timescale):
             expected_result = expected_result if not isinstance(expected_result, dict) else expected_result[suffix]
             logging.info(f"Assert {mqtt_data[MqttCVS.out_name]}{suffix} from testdata record {i}")
             assert ( prometheus.REGISTRY.get_sample_value(
-                f"{mqtt_data[MqttCVS.out_name]}{suffix}", 
+                f"{mqtt_data[MqttCVS.out_name]}{suffix}",
                 labels
                 ) == expected_result ) == mqtt_data[MqttCVS.expected_assert]
         time.sleep(mqtt_data[MqttCVS.delay] * timescale)
